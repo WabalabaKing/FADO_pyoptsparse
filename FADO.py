@@ -12,6 +12,9 @@ from tools import BoundConstraints
 from tools import GradientScale
 from drivers import ExteriorPenaltyDriver
 from drivers import ScipyDriver
+#try importing pyoptsparsedriver
+from drivers import PyoptsparseDriver
+
 # Import IpOpt driver if possible.
 try: from drivers import IpoptDriver
 except: pass
