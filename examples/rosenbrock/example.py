@@ -11,11 +11,14 @@
 # The variables (x,y) go in the config, the constants go in the data.
 
 # You "shouldn't" do this... but if nothing else works...
-#import sys
-#sys.path.append("../")
-#sys.path.append("../../")
-
+import sys
+sys.path.append("../")
+sys.path.append("../../")
 from FADO import *
+from pyoptsparse import SLSQP, Optimization
+import argparse
+
+
 
 # Design variables of the problem
 # this defines initial value and how they are written to an arbitrary file
@@ -84,27 +87,20 @@ fun3.addGradientEvalStep(evalJac3)
 
 # Driver
 # the optimization is defined by the objectives and constraints
-driver = ExteriorPenaltyDriver(0.005,0)
+driver = PyoptsparseDriver()
 driver.addObjective("min",fun1,0.5)
 driver.addObjective("min",fun2,0.5)
 driver.addUpperBound(fun3,2.0)
 
-driver.preprocessVariables()
 driver.setStorageMode(False)
+driver.setEvaluationMode(True,1.0)
 
-class exampleAction:
-    def __init__(self, message):
-        self._message = message
 
-    def __call__(self):
-        print(self._message)
-#end
+nlp = driver.getNLP()
+#Perform Optimization
+opt = SLSQP(options={})
+hisName = 'opt_history.hst'
+opt.setOption("MAXIT",60)
+sol = opt(nlp,sens=driver.getGrad,storeHistory=hisName)
+print(sol.fStar)
 
-driver.setUserPostProcessGrad(exampleAction("after gradient"))
-
-# Optimization
-# now the "fun" and "grad" methods of the driver can be passed to an optimizer
-x  = driver.getInitial()
-options={'disp': True, 'maxcor': 10, 'ftol': 1e-6, 'gtol': 1e-5, 'maxiter': 200, 'maxls': 20}
-
-optimum = fletcherReeves(driver.fun,x,driver.grad,options)

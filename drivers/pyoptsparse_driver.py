@@ -36,7 +36,18 @@ class PyoptsparseDriver(ConstrainedOptimizationDriver):
 
         # The optimization problem
         self._opt_prob = None
-
+        self._opt_grad = None
+        self.fail = False
+        self.funcs = {}
+    
+        
+    def _dictfun(self):
+        funcs = {}
+        funcs['obj'] = self._eval_f
+        funcs['cons'] = self._eval_g
+        fail = False
+        return funcs, fail
+    
     def getNLP(self):
         """
         Prepares and returns the optimization problem for Ipopt (an instance of pyoptsparse.OptimizationProblem).
@@ -59,14 +70,24 @@ class PyoptsparseDriver(ConstrainedOptimizationDriver):
         )
 
         # Create the optimization problem
-        self._opt_prob = Optimization()
+        
+        self._opt_prob = Optimization("OptimizationName",_dictfun)
         self._opt_prob.addVarGroup('x', self._nVar, lower=self.getLowerBound(), upper=self.getUpperBound())
-        self._opt_prob.addConGroup('g', self._nCon, lower=conLowerBound, upper=conUpperBound)
-
-        self._opt_prob.addObj('f')
+        self._opt_prob.addConGroup('cons', self._nCon, lower=conLowerBound, upper=conUpperBound)
+        self._opt_prob.addObj('obj')
 
         return self._opt_prob
+    
 
+    
+    def getGrad(self):
+        grads = {}
+        grads['obj'] = {'x':self._eval_grad_f}
+        grads['cons'] = {'x':self._eval_jac_g}
+        self._opt_grad = grads
+        fail = False
+        return self._opt_grad,fail
+    
     def _eval_f(self, xdict):
         """
         Method to evaluate the objective function, computes all functions if necessary.
@@ -134,3 +155,4 @@ class PyoptsparseDriver(ConstrainedOptimizationDriver):
             i += self._nVar
 
         return out
+        
