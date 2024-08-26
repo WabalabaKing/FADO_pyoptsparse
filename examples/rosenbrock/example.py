@@ -97,10 +97,11 @@ driver.setEvaluationMode(True,1.0)
 
 
 nlp = driver.getNLP()
-#Perform Optimization
+di = driver._dictfun()
+# #Perform Optimization
 opt = SLSQP(options={})
 hisName = 'opt_history.hst'
 opt.setOption("MAXIT",60)
 sol = opt(nlp,sens=driver.getGrad,storeHistory=hisName)
-print(sol.fStar)
+# # print(sol.fStar)
 

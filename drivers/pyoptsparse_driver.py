@@ -36,17 +36,11 @@ class PyoptsparseDriver(ConstrainedOptimizationDriver):
 
         # The optimization problem
         self._opt_prob = None
+        self._opt_dict = None
         self._opt_grad = None
         self.fail = False
         self.funcs = {}
     
-        
-    def _dictfun(self):
-        funcs = {}
-        funcs['obj'] = self._eval_f
-        funcs['cons'] = self._eval_g
-        fail = False
-        return funcs, fail
     
     def getNLP(self):
         """
@@ -71,14 +65,20 @@ class PyoptsparseDriver(ConstrainedOptimizationDriver):
 
         # Create the optimization problem
         
-        self._opt_prob = Optimization("OptimizationName",_dictfun)
+        self._opt_prob = Optimization("OptimizationName",self._dictfun)
         self._opt_prob.addVarGroup('x', self._nVar, lower=self.getLowerBound(), upper=self.getUpperBound())
         self._opt_prob.addConGroup('cons', self._nCon, lower=conLowerBound, upper=conUpperBound)
         self._opt_prob.addObj('obj')
 
         return self._opt_prob
     
-
+    def _dictfun(self):
+        funcs = {}
+        funcs['obj'] = self._eval_f
+        funcs['cons'] = self._eval_g
+        self._opt_dict = funcs
+        fail = False
+        return self._opt_dict
     
     def getGrad(self):
         grads = {}
